@@ -18,6 +18,16 @@ const moons = []
 const suns = []
 const turningx = []
 const turningz = []
+const galaxies = []
+const turningObjects = []
+
+function addTurning(object,x,y,z) {
+  object.userData.turningX=x;
+  object.userData.turningY=y;
+  object.userData.turningZ=z;
+
+  turningObjects.push(object);
+}
 
 
 const planetsNum = document.getElementById('planets-slider');
@@ -56,7 +66,7 @@ composer.addPass(renderScene);
 
 const bloomPass = new UnrealBloomPass(
   new THREE.Vector2(window.innerWidth, window.innerHeight),
-  0.5,
+  0.6,
   0.5,
   0.03
 );
@@ -69,16 +79,16 @@ composer.addPass(bloomPass);
 // const torus = new THREE.Mesh(geometry, material);
 
 
-const pointLight = new THREE.PointLight(0xffffff)
-pointLight.position.set(0,0,0);
-pointLight.intensity = .5;
-scene.add(pointLight);
+// const pointLight = new THREE.PointLight(0xffffff)
+// pointLight.position.set(0,0,0);
+// pointLight.intensity = .5;
+// scene.add(pointLight);
 
 // const ambientLight = new THREE.AmbientLight(0xffffff);
 // ambientLight.intensity = .01;
 // scene.add(ambientLight);
-const lightHelper = new THREE.PointLightHelper(pointLight);
-scene.add(lightHelper);
+// const lightHelper = new THREE.PointLightHelper(pointLight);
+// scene.add(lightHelper);
 // const gridHelper = new THREE.GridHelper();
 // scene.add(gridHelper);
 
@@ -147,7 +157,7 @@ planetLights.repeat.set(1,1);
 planetLights.wrapS = THREE.RepeatWrapping;
 planetLights.wrapT = THREE.RepeatWrapping;
 
-function normalizedSpher(r) {
+function normalizedSphere(r) {
   // const r = 3;
   let g = new THREE.BoxGeometry(1, 1, 1, 10, 10, 10);
   let v = new THREE.Vector3(); // temp vector, for re-use
@@ -185,6 +195,7 @@ function addClouds(size, parent) {
   const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
   parent.add(clouds);
   turningx.push(clouds);
+  addTurning(clouds,.001,0,0);
 
 }
 
@@ -203,6 +214,7 @@ function addMoon(planetSize, parent) {
   const moonRot = Math.random();
   moonGroup.rotation.set(moonRot,0,0);
   moonGroup.add(moon);
+  addTurning(moonGroup,0,.005,0);
   parent.add(moonGroup);
 
   const distance = (Math.random() + 1) * 2 *planetSize;
@@ -210,12 +222,12 @@ function addMoon(planetSize, parent) {
   moon.position.set(distance,0,0);
 
 }
-function addPlanet() {
+function addPlanet(parent) {
 
   const planetGroup = new THREE.Group();
 
   const planetSize = Math.random()*2 +.5;
-  const geometry = normalizedSpher(planetSize);
+  const geometry = normalizedSphere(planetSize);
   const color = generateRandomColor()
   const material = new THREE.MeshStandardMaterial( {
     color: color,
@@ -236,14 +248,16 @@ function addPlanet() {
   )
 
   const multiplier = 50
-  planetGroup.position.set(getRandom2(multiplier),getRandom2(multiplier),getRandom2(multiplier));
+  planet.position.set(getRandom2(multiplier),getRandom2(multiplier),getRandom2(multiplier));
 
   planetGroup.add(planet);
   addClouds(planetSize+.01, planetGroup);
 
-  addMoon(planetSize, planetGroup);
-  scene.add(planetGroup);
+  addMoon(planetSize, planet);
+  parent.add(planetGroup);
   planets.push(planetGroup);
+  
+  addTurning(planetGroup,0,((Math.random()-.5)/1000)+.001,0);
 }
 
 const sunTexture = new THREE.TextureLoader().load('images/materials/sun/sun1.jpg');
@@ -257,10 +271,13 @@ sunTexture2.repeat.set(1,1);
 sunTexture2.wrapS = THREE.RepeatWrapping;
 sunTexture2.wrapT = THREE.RepeatWrapping;
 
-function addSun() {
-  const sunGeometry = new THREE.SphereGeometry(3,32,32);
-  const sunOuterGeo1 = new THREE.SphereGeometry(3.02,32,32);
-  const sunOuterGeo2 = new THREE.SphereGeometry(3.04,32,32);
+function addSun(parent) {
+  const sunSize = Math.max(Math.random()*10,3)
+  console.log(sunSize);
+  
+  const sunGeometry = new THREE.SphereGeometry(sunSize,32,32);
+  const sunOuterGeo1 = new THREE.SphereGeometry(sunSize+.02,32,32);
+  const sunOuterGeo2 = new THREE.SphereGeometry(sunSize+.04,32,32);
 
   const roughness = new THREE.TextureLoader().load('images/materials/sun/ground_0017_roughness_2k.jpg');
   const emissive = new THREE.TextureLoader().load('images/materials/sun/ground_0017_emissive_2k.jpg');
@@ -283,28 +300,76 @@ function addSun() {
     map: sunTexture,
     normalMap: sunNormal,
     transparent: true,
-    opacity: 0.5,
+    opacity: 0.1,
     side: THREE.DoubleSide,
     emissiveMap: sunTexture,
     emissiveIntensity: 20
 
   });
 
+  const sunGroup = new THREE.Group;
+
   const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-  scene.add(sun);
+  sunGroup.add(sun);
   suns.push(sun);
+  sun.position.set(0,0,0);
+
+  const sunLight = new THREE.PointLight(0xffffff)
+  sunLight.position.set(sun.position.x,sun.position.y,sun.position.z);
+  sunLight.intensity = .5;
+  sun.add(sunLight);
+  const lightHelper = new THREE.PointLightHelper(sunLight);
+  // sun.add(lightHelper);
+
+  
   const sunOuter1 = new THREE.Mesh(sunOuterGeo1, sunMaterial2);
   sunOuter1.rotation.set(Math.random(),Math.random(),Math.random());
-  scene.add(sunOuter1);
+  sunGroup.add(sunOuter1);
   turningx.push(sunOuter1);
+  addTurning(sunOuter1,.001,0,0);
   const sunOuter2 = new THREE.Mesh(sunOuterGeo2, sunMaterial2);
   sunOuter2.rotation.set(Math.random(),Math.random(),Math.random());
-  scene.add(sunOuter2);
+  sunGroup.add(sunOuter2);
+  addTurning(sunOuter2,0,0,.001);
   turningz.push(sunOuter2);
+
+  parent.add(sunGroup);
+  addTurning(sunGroup,0,0,.001);
+
 
 }
 
-// addSun();
+function addGalaxy(planetNum,galaxyPosition=null) {
+
+  const galaxyGroup = new THREE.Group;
+
+  for (let i=0; i < planetNum; i++) {
+    addPlanet(galaxyGroup);
+
+  }
+
+  addSun(galaxyGroup);
+
+  const offset = 100
+  if (galaxyPosition===null){
+    galaxyGroup.position.set((Math.random()-.5)*offset,(Math.random()-.5)*offset,(Math.random()-.5)*offset);
+
+  } else {
+    galaxyGroup.position.set(galaxyPosition[0],galaxyPosition[1],galaxyPosition[2]);
+
+  }
+  // galaxyGroup.position.set((Math.random()-.5)*offset,(Math.random()-.5)*offset,(Math.random()-.5)*offset);
+  scene.add(galaxyGroup);
+  galaxies.push(galaxyGroup);
+  
+  addTurning(galaxyGroup,(Math.random()-.5)/1000,(Math.random()-.5)/1000,(Math.random()-.5)/1000);
+
+}
+
+
+addGalaxy(5);
+addGalaxy(5);
+addGalaxy(10,[0,0,0]);
 
 
 
@@ -323,7 +388,7 @@ function addStar() {
 
 
 Array(400).fill().forEach(addStar);
-Array(10).fill().forEach(addPlanet);
+// Array(10).fill().forEach(addPlanet);
 
 
 
@@ -354,15 +419,15 @@ function randomRepeat() {
 const gltfLoader = new GLTFLoader();
 
 
-gltfLoader.load('./assets/speeder.glb', (gltfScene) => {
-  const speeder = gltfScene.scene;
-  speeder.scale.set(.1,.1,.1);
-  speeder.position.y = -4;
-  scene.add(speeder);
-  console.log(speeder);
+// gltfLoader.load('./assets/speeder.glb', (gltfScene) => {
+//   const speeder = gltfScene.scene;
+//   speeder.scale.set(.1,.1,.1);
+//   speeder.position.y = -4;
+//   scene.add(speeder);
+//   console.log(speeder);
 
   
-});
+// });
 
 
 
@@ -370,25 +435,31 @@ function animate() {
   composer.render();
   requestAnimationFrame( animate );
 
-  // moon.rotation.y += 0.001
-  planets.forEach(planet => {
-    planet.rotation.y += 0.001;
-  });
-  moons.forEach(moon => {
-    moon.rotation.y += 0.005;
-  });
+  turningObjects.forEach(obj => {
+    obj.rotation.x += obj.userData.turningX;
+    obj.rotation.y += obj.userData.turningY;
+    obj.rotation.z += obj.userData.turningZ;
+  })
 
-  suns.forEach(sun => {
-    sun.rotation.y += 0.001;
-  });
+  // // moon.rotation.y += 0.001
+  // planets.forEach(planet => {
+  //   planet.rotation.y += 0.001;
+  // });
+  // moons.forEach(moon => {
+  //   moon.rotation.y += 0.005;
+  // });
 
-  turningx.forEach(obj => {
-    obj.rotation.x += 0.001;
-  });
+  // suns.forEach(sun => {
+  //   sun.rotation.y += 0.001;
+  // });
 
-  turningz.forEach(obj => {
-    obj.rotation.z += 0.001;
-  });
+  // turningx.forEach(obj => {
+  //   obj.rotation.x += 0.001;
+  // });
+
+  // turningz.forEach(obj => {
+  //   obj.rotation.z += 0.001;
+  // });
 
   // randomRepeat()
 
