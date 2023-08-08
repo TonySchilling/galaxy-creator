@@ -1,0 +1,32 @@
+body {
+  font-family: "Arial Bold", sans-serif;
+
+}
+
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+main {
+  position: absolute;
+  color: aliceblue;
+}
+
+#mainpanel {
+  color: aliceblue;
+  background-color: rgb(46, 46, 46);
+  opacity: .9;
+  padding: 15px;
+}
+
+p {
+  opacity: 1;
+  color: rgb(255, 255, 255);
+}
+/* #panelcontainer {
+  background-color: rgb(20, 20, 20);
+  opacity: 1;
+} */
+
