@@ -24,5 +24,6 @@ dist-ssr
 *.sw?
 
 # Unused assets
-images
+
 assets
+images/spaceHdrTest.hdr
